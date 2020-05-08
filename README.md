@@ -64,6 +64,6 @@ python3 PythonVoterAPI.py
 
 ***AGHO Signatur:*** Masayuki Abe, Jens Groth, Kristiyan Haralambiev, and Miyako Ohkubo. Optimal Structure-Preserving Signatures in Assymetric Bilinear Groups. Lecture Notes in Computer Science, 6841, 2011
 
-***Restriktive AGHO Blindsignatur:*** Ulrich Haböck and Stephan Krenn. Breaking and Fixing Anonymous Creden- tials for the Cloud. Cryptology and Network Security, pages 249–269, 2019.
+***Restriktive AGHO Blindsignatur:*** Ulrich Haböck and Stephan Krenn. Breaking and Fixing Anonymous Credentials for the Cloud. Cryptology and Network Security, pages 249–269, 2019.
 
 ***Charm Library:*** Mattew Green. Charm: A Framework for Rapidly Prototyping Cryptosystems, 2019. https://github.com/JHUISI/charm 
