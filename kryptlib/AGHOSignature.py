@@ -57,9 +57,9 @@ class AGHO(ElGamal):
 
     def verify(self, pk, sig, g, h, cipher):
         '''
-        verifies the agho signature by checking the verification euquations
+        verifies the AGHO signature by checking the verification euquations
         :param pk: the verification key
-        :param sig: the agho signature
+        :param sig: the AGHO signature
         :param g: the public parameter from G1
         :param h: the public parameter from G2
         :param cipher: the encrypted vote
@@ -85,5 +85,4 @@ class AGHO(ElGamal):
         tmp=1
         for i in range(0,self.params):
             tmp=tmp*self.pairing.pair_prod(c['c1'][i], pk['W'][i])*self.pairing.pair_prod(c['c2'][i], pk['W'][i+self.params])
-        return tmp
-        
+        return tmp 

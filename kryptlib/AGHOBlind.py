@@ -1,7 +1,6 @@
 from kryptlib.ElGamalImpl import ElGamal, ElGamalCipher
 from charm.toolbox.pairinggroup import PairingGroup, G1, ZR
 from kryptlib import ZKP
-#import zkp_compiler.zkp_generator
 
 class AGHOBlind(ElGamal):
     def __init__(self,eg):
@@ -123,9 +122,9 @@ class AGHOBlind(ElGamal):
 
     def verify(self, pk, sig, g, h, cipher):
         '''
-        verifies the agho signature by checking the verification euquations
+        verifies the AGHO signature by checking the verification euquations
         :param pk: the verification key
-        :param sig: the agho signature
+        :param sig: the AGHO signature
         :param g: the public parameter from G1
         :param h: the public parameter from G2
         :param cipher: the encrypted vote
@@ -172,12 +171,13 @@ class AGHOBlind(ElGamal):
         :param o: the secret client side encryption randomness
         :param e: secret parameter for pad blinding
         :param G: the client side signature randomness
-        :param f1: first part of the random decompilation of the secret client signature parameter
-        :param f2: second part of the random decompilation of the secret client signature parameter
+        :param f1: first part of the random decomposition of the secret client signature parameter
+        :param f2: second part of the random decomposition of the secret client signature parameter
         :return: the ZKP parameters challenge and response
         '''
         (ch,r)=ZKP.ZKP_correctFormatU(g,P_bar,pk,o,e,G,f1,f2,self.params)
         return (ch,r)
+        
     def ZKPU_verify(self, ch, G, r, c_bar, P_bar, m, pk, g):
         '''
         verifies a ZKP for the correct format of a vote
@@ -186,12 +186,13 @@ class AGHOBlind(ElGamal):
         :param r: the response
         :param c_bar: the blinded EV
         :param P_bar: the blinded pad
-        :param m: the message (public attrbutes)
+        :param m: the message (public attributes)
         :param pk: the public encryption key
         :param g: the public parameter from G1
         :return: the result of the verification
         '''
         return ZKP.verifyZKP_FormatU(ch,G,r,c_bar,P_bar,m,pk,g,self.params)
+
     def ZKPS(self,h,g,sig,pk,G,c_bar, sk, z1, z2, ri, P_bar):
         '''
         calculates the ZKP for the correct format of the signature
@@ -201,19 +202,20 @@ class AGHOBlind(ElGamal):
         :param pk: the verification key
         :param G: the client side signature randomness
         :param c_bar: the blinded EV
-        :param sk: the secred signature key
-        :param z1: first part of the random decompilation of the secret signature parameter
-        :param z2: second part of the random decompilation of the secret signature parameter
+        :param sk: the secret signature key
+        :param z1: first part of the random decomposition of the secret signature parameter
+        :param z2: second part of the random decomposition of the secret signature parameter
         :param ri: the server side signature randomness
         :param P_bar: the blinded pad
         :return: the ZKP parameters challenge and response
         '''
         (ch,r)=ZKP.ZKP_correctFormatS(h,g,sig,pk,G,c_bar,sk,z1,z2,ri,P_bar, self.params)
         return (ch,r)
+
     def ZKPS_verify(self,h,g,pk,ch,r,c_bar,P_bar, G, sig):
         '''
         verifies a ZKP for the correct format of a signature
-        :param h: the public parameter fromo G2
+        :param h: the public parameter from G2
         :param g: the public parameter from G1
         :param pk: the verification key
         :param ch: the challenge
@@ -225,4 +227,3 @@ class AGHOBlind(ElGamal):
         :return: the result of the verification
         '''
         return ZKP.verifyZKP_FormatS(h,g,pk,ch,r,c_bar,P_bar,G,sig, self.params)
-

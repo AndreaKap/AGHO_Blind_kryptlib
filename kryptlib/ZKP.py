@@ -9,8 +9,8 @@ def ZKP_correctFormatU(g,P_bar,pk, o, e,G, f1, f2, params):
     :param o: secret client side encryption randomness
     :param e: secret parameter for pad blinding
     :param G: the client side signing randomness
-    :param f1: first part of the random decompilation of the secret client signature parameter
-    :param f2: second part of the random decompilation of the secret client signature parameter
+    :param f1: first part of the random decomposition of the secret client signature parameter
+    :param f2: second part of the random decomposition of the secret client signature parameter
     :param params: the number of parameters (attributes)
     :return: the result of the verification
     ''' 
@@ -40,7 +40,7 @@ def ZKP_correctFormatU(g,P_bar,pk, o, e,G, f1, f2, params):
 
 def ZKP_correctFormatS(h,g, sig, pk, G, c_bar, sk, z1, z2,ri, P_bar, params):
     '''
-    calculates a NIZKP for the correct format of the signature
+    calculates a NIZK for the correct format of the signature
     :param h: the public parameter from G2
     :param g: the public parameter from G1 
     :param sig: the AGHO signature
@@ -48,31 +48,31 @@ def ZKP_correctFormatS(h,g, sig, pk, G, c_bar, sk, z1, z2,ri, P_bar, params):
     :param G: the client side signing randomness 
     :param c_bar: the blinded encrpted vote
     :param sk: the secret siging key
-    :param z1: first part of the random decompilation of the secret signature parameter
-    :param z2: second part of the random decompilation of the secret signature parameter
-    :param ri: the servier side randomness
+    :param z1: first part of the random decomposition of the secret signature parameter
+    :param z2: second part of the random decomposition of the secret signature parameter
+    :param ri: the server side randomness
     :param P_bar: the blinded pad
     :param params: the number of parameters (attributes)
-    :return: the zKP parameters
+    :return: the ZKP parameters
     '''
     group=PairingGroup('BN254')
     nu=[]
     N=[]
     r=[]
     N_bar=""
-    for i in range(0,params*2+4): #params*2 für die wi's +r + r*v+z1+z2
+    for i in range(0,params*2+4): 
         nu.append(group.random(ZR))
-    for i in range(0, params*2): #für die wi's
-        N.append(mapToGT(g,h**nu[i])) # N0
-    N.append(mapToGT(g,(h**nu[2*params])*(h**nu[2*params+1]))) #N1
-    N.append(g**nu[2*params+2]) #N2
-    N.append(mapToGT(g,sig['T_bar']**nu[2*params+2])) #N3
+    for i in range(0, params*2): 
+        N.append(mapToGT(g,h**nu[i])) 
+    N.append(mapToGT(g,(h**nu[2*params])*(h**nu[2*params+1]))) 
+    N.append(g**nu[2*params+2]) 
+    N.append(mapToGT(g,sig['T_bar']**nu[2*params+2])) 
     tmp=(pk['V']**nu[2*params+2])*(h**(nu[2*params+3]))
-    N.append(mapToGT(g,tmp)) #N4 
+    N.append(mapToGT(g,tmp)) 
     cprod=calcCprod(c_bar, nu, params)
-    N.append((g**nu[2*params])*(G['G2']**(nu[2*params+3]))*cprod) # N5
+    N.append((g**nu[2*params])*(G['G2']**(nu[2*params+3]))*cprod) 
     pprod=calcPprod(P_bar,nu, params)
-    N.append((G['G1']**nu[2*params+1])*(G['G3']**(nu[2*params+3]))*pprod)#N6
+    N.append((G['G1']**nu[2*params+1])*(G['G3']**(nu[2*params+3]))*pprod)
     for i in range(len(N)):
         N_bar=N_bar+str(N[i])
     ch=H(N_bar.encode('utf-8'))
@@ -88,7 +88,7 @@ def mapToGT(g,m):
     '''
     calculates the pairing product of g and m because of serialisation problems in G2
     :param g: the public parameter from G1 
-    :param m: ta message from G2
+    :param m: the message from G2
     :return: the pairing product
     '''
     group=PairingGroup('BN254')
@@ -123,7 +123,7 @@ def calcPprod(P_bar, nu, params):
 
 def ZKP_correctVote(c, g, sk, params):
     '''
-    calculates a NIZKP for the correct decryption of a vote
+    calculates a NIZK for the correct decryption of a vote
     :param c: the encrypted vote
     :param g: the public parameter from G1 
     :param sk: the secret decryption key
@@ -160,7 +160,6 @@ def verifyZKP_FormatU(ch,G, r, c_bar, P_bar, m, pk,g, params):
     group=PairingGroup('BN254')
     v=[]
     v_bar=""
-    helpi=(G['G1']**r[0])*g**(-ch)
     v.append((G['G1']**r[0])*g**(-ch))
     v.append((g**r[1])*(G['G2']**(-ch)))
     v.append((G['G1']**r[2])*(G['G3']**(-ch)))
@@ -175,7 +174,7 @@ def verifyZKP_FormatU(ch,G, r, c_bar, P_bar, m, pk,g, params):
 def verifyZKP_FormatS(h,g,pk, ch, r, c_bar, P_bar, G, sig, params): 
     '''
     verifies a ZKP for the correct format of a signature
-    :param h: the public parameter fromo G2
+    :param h: the public parameter from G2
     :param g: the public parameter from G1
     :param pk: the verification key
     :param ch: the challenge
@@ -190,15 +189,15 @@ def verifyZKP_FormatS(h,g,pk, ch, r, c_bar, P_bar, G, sig, params):
     v=[]
     v_bar=""
     for i in range(0, 2*params):
-        v.append(mapToGT(g,(h**r[i])*((pk['W'][i]**(-ch))))) #v1
-    v.append(mapToGT(g,(h**(r[2*params]))*(h**r[2*params+1])*((pk['Z']**(-ch))))) #v2
-    v.append((g**r[2*params+2])*(sig['R_bar']**(-ch))) #v3
-    v.append(mapToGT(g,(sig['T_bar']**r[2*params+2])*(h**(-ch)))) #v4
-    v.append(mapToGT(g,(pk['V']**r[2*params+2])*(h**r[2*params+3]))) #v5
+        v.append(mapToGT(g,(h**r[i])*((pk['W'][i]**(-ch))))) 
+    v.append(mapToGT(g,(h**(r[2*params]))*(h**r[2*params+1])*((pk['Z']**(-ch))))) 
+    v.append((g**r[2*params+2])*(sig['R_bar']**(-ch))) 
+    v.append(mapToGT(g,(sig['T_bar']**r[2*params+2])*(h**(-ch)))) 
+    v.append(mapToGT(g,(pk['V']**r[2*params+2])*(h**r[2*params+3]))) 
     cprod=calcCprod(c_bar,r,params)
     pprod=calcPprod(P_bar,r,params)
-    v.append((g**r[2*params])*(G['G2']**(r[2*params+3]))*cprod*(sig['S1_bar']**(-ch))) #v6
-    v.append((G['G1']**r[2*params+1])*(G['G3']**(r[2*params+3]))*pprod*(sig['S2_bar']**(-ch))) #v7
+    v.append((g**r[2*params])*(G['G2']**(r[2*params+3]))*cprod*(sig['S1_bar']**(-ch))) 
+    v.append((G['G1']**r[2*params+1])*(G['G3']**(r[2*params+3]))*pprod*(sig['S2_bar']**(-ch))) 
     for i in range(len(v)):
         v_bar=v_bar+str(v[i])
     return ch==H(v_bar.encode('utf-8'))

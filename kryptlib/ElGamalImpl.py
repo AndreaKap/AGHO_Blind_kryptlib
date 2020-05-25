@@ -34,7 +34,7 @@ class ElGamalCipher(dict):
 class ElGamal(PKEnc):
     def __init__(self, par,p=0):
         '''
-        initializes a elGamal object with the number of parameters and the pairing group
+        initializes an ElGamal object with the number of parameters and the pairing group
         '''
         PKEnc.__init__(self)
         global group
@@ -72,8 +72,8 @@ class ElGamal(PKEnc):
     
     def encode(self, message):
         '''
-        encodes a message (string --> EC)
-        :param message:
+        encodes a message (string --> pairing.Element)
+        :param message: the message
         :return: the encoded message
         '''
         h=group.hash(message,G1)
@@ -95,7 +95,7 @@ class ElGamal(PKEnc):
         searches for the right string matching the point on the EC
         :param message: the decrypted message
         :param attriibutePossibilities: list of possible strings
-        :return: returns he mathing string
+        :return: returns the matching string
         '''
         table=self.generateLookupTable(attributePossibilities)
         for i in range(0,len(table)):
@@ -110,7 +110,7 @@ class ElGamal(PKEnc):
         :param sk: the secret decryption key
         :param c: the encrypted vote
         :param attributePossibilities: list of possible strings
-        :return: teh decrypted vote
+        :return: the decrypted vote
         '''
         s=[]
         m=[]
@@ -123,7 +123,7 @@ class ElGamal(PKEnc):
 
     def decode(self,message, attributePossibilities):
         '''
-        decoding a vote (EC -> string)
+        decoding a vote (pairing.Element -> string)
         :param message: the message
         :param attributePossiblities: list of possible strings
         :return: the decoded message

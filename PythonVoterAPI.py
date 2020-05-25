@@ -5,20 +5,21 @@ from kryptlib.AGHOBlind import AGHOBlind
 
 URL="http://127.0.0.1:5002" # server url
 group=PairingGroup('BN254') # pairing group
-can=["Eric Example", "Max Mustermann", "Conrand Candidate"] # ist of candidates
+can=["Eric Example", "Max Mustermann", "Conrand Candidate"] # list of candidates
 sex=["male", "female"] # list of possible sexes
 params=2 # parameters
-el=ElGamal(params) # elgamal instance
-agho=AGHOBlind(el) # agho instance
+el=ElGamal(params) # ElGamal instance
+agho=AGHOBlind(el) # AGHO instance
 
 def deser(var):
     '''
-    deserializinig variables to get <pairing.Element> types
+    deserializing variables to get <pairing.Element> types
     '''
     return group.deserialize(var.encode('utf-8'))
+
 def ser(var):
     '''
-    serializinig variables to get base64 encoded strings
+    serializing variables to get base64 encoded strings
     '''
     return group.serialize(var).decode('utf-8')
 
@@ -67,7 +68,7 @@ def voteOptions():
     i=input()
     if i!="1" and i!="2" and i!="3" and i!="4":
         print("Please enter a valid choice!")
-        voteOptions()
+        return voteOptions()
     else:
         if i=="1":
             return can[0]
@@ -76,7 +77,7 @@ def voteOptions():
         elif i=="3":
             return can[2]
         elif i=="4":
-            mainmenu()
+            return
 
 def getUsrAndPass():
     '''
@@ -84,7 +85,7 @@ def getUsrAndPass():
     '''
     print("Please enter your username")
     usr=input()
-    print("please enter your password")
+    print("Please enter your password")
     pwd=input()
     return usr, pwd
 
@@ -100,20 +101,20 @@ def sexOptions():
     i=input()
     if i!="1" and i!="2" and i!="3":
         print("Please enter a valid choice!")
-        sexOptions()
+        return sexOptions()
     else:
         if i=="1":
             return sex[0]
         elif i=="2":
             return sex[1]
         elif i=="3":
-            mainmenu()
+            return
             
 def vote():
     '''
     voting:
-    the client requests the encryptio  key and encrypts the vote
-    teh cliient blinds the vote and requests a signature with a client side zkp
+    the client requests the encryption key and encrypts the vote
+    the client blinds the vote and requests a signature with a client side zkp
     then the client submits the vote at the counting server
     '''
     m=[]
@@ -145,7 +146,7 @@ def count():
     '''
     counting:
     the client sends a request with the possible candidates and sexes to the server
-    the server sends back the counting results and the client printts the results and the counts
+    the server sends back the counting results and the client prints the results and the counts
     '''
     par={'cand1': can[0], 'cand2': can[1], 'cand3': can[2], 'sex1': sex[0], 'sex2': sex[1]}
     r=requests.post(url=(URL+"/count"), data=par)
@@ -172,7 +173,7 @@ def wbb():
     '''
     wbb:
     the client sends a request with the possible candidates and sexes to the server
-    the server sends back the counting results and the client printts the results and the counts
+    the server sends back the votes, signatures and ZKPs and the client verifies the ZKPs and prints all
     '''
     par={'cand1': can[0], 'cand2': can[1], 'cand3': can[2], 'sex1': sex[0], 'sex2': sex[1]}
     r=requests.post(url=(URL+"/wbb"), data=par)
@@ -241,8 +242,8 @@ def getEncryptionKey():
 
 def getSigninigKey():
     '''
-    requests the verification key from the server and returns the key and the pubic parameter from G2 h
-    :return: pk verification key and h public parameter from G2
+    requests the verification key from the server and returns the key and the pubic parameter h from G2
+    :return: pk verification key and h the public parameter from G2
     '''
     r=requests.get(url=(URL+"/pkSig"))
     if 200!= r.status_code:
@@ -269,7 +270,7 @@ def getSigninigKey():
 
 def encryptAndBlindVote(pk,m,g):
     '''
-    does the ElGamal encryption of a vote m and blinids the vote
+    does the ElGamal encryption of a vote m and blinds the vote
     :param pk: the public encryption key
     :param m: the vote
     :param g: the public parameter from G1
@@ -281,7 +282,7 @@ def encryptAndBlindVote(pk,m,g):
 
 def ZKPu(g,P_bar,pk,o,e,G,f1,f2):
     '''
-    generates a NIZKP for the correct format of the vote
+    generates a NIZK for the correct format of the vote
     :param g: the public parameter from G1
     :param P_bar: the pad
     :param pk: the public encryption key
@@ -297,12 +298,12 @@ def ZKPu(g,P_bar,pk,o,e,G,f1,f2):
 
 def signVoteAndDeblind(usr, pwd, c_bar, P_bar,g, G, ch, resp, e, f, pk,h, pk_sig,msg):
     '''
-    The clinet requests a signature for the Encrypted and blinded vote and sends the
-    credentiials, 
+    The client requests a signature for the Encrypted and blinded vote and sends the
+    credentials, 
     the blinded vote, 
     the client side ZKP parameters
     the pad
-    the clinet signing randomnesses and
+    the client signing randomnesses and
     the message to the server and verifies the zero knowledge proof of the response
     the client deblinds the blinded signature and returns it
     :param usr: the user
@@ -310,14 +311,14 @@ def signVoteAndDeblind(usr, pwd, c_bar, P_bar,g, G, ch, resp, e, f, pk,h, pk_sig
     :param c_bar: the blinded vote
     :param P_bar: the blinded Pad
     :param g: the public parameter from G1
-    :param G: the client siide randomness signing parameters
-    :param ch: the challennge for the clinet side ZKP
-    :param resp: the response for the clinet side ZKP
+    :param G: the client side randomness signing parameters
+    :param ch: the challennge for the client side ZKP
+    :param resp: the response for the client side ZKP
     :param e: the secret randomness for blinding the pad
-    :param f: the secret randomness for the sgnature
+    :param f: the secret randomness for the signature
     :param pk: the public encryption key
     :param h: the public parameter from G2
-    :param pk_sig: the verification siigning key
+    :param pk_sig: the verification signing key
     :param msg: the message with the public attributes
     :return: deblinded signature
     '''
@@ -374,15 +375,15 @@ def verifyZKPs(ch,r, h, g, pk, c_bar, P_bar, G, sig_bar):
     :param pk: the pubic signature key
     :param c_bar: the blinded vote
     :param P_bar: the blinded Pad
-    :param G: the radminess client side parameters
-    :param sig_bar: te signature
+    :param G: the client side radomness parameters
+    :param sig_bar: the signature
     :reutrn: the result from the verification
     '''
     return agho.ZKPS_verify(h,g,pk,ch,r,c_bar,P_bar, G, sig_bar)
 
 def submitVote(c, sig, pk, h):
     '''
-    Submits the vote and the signatutre at the counting server
+    Submits the vote and the signature at the counting server
     :param c: Encrypted Vote.
     :param sig: AGHO Signature.
     :param pk: public encryption key.

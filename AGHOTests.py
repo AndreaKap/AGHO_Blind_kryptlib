@@ -1,7 +1,7 @@
 from charm.toolbox.pairinggroup import PairingGroup,G1,G2, ZR
-from ElGamalImpl import ElGamal
-from AGHOSignature import AGHO
-from AGHOBlind import AGHOBlind
+from kryptlib.ElGamalImpl import ElGamal
+from kryptlib.AGHOSignature import AGHO
+from kryptlib.AGHOBlind import AGHOBlind
 import unittest
 
 class AGHOSignature(unittest.TestCase):
@@ -9,7 +9,7 @@ class AGHOSignature(unittest.TestCase):
         groupObj=PairingGroup('BN254')
         params=1
         msg=[]
-        msg.append("testitest")
+        msg.append("testmessage")
         el = ElGamal(params) 
         agho=AGHO(el)
         h=groupObj.random(G2)
@@ -20,12 +20,13 @@ class AGHOSignature(unittest.TestCase):
         vf=agho.verify(pk_sig, sig, pk_EV['g'], h, c)
         assert(vf)
         print("AGHO Signature Test Result with one parameter:",vf)
+    
     def testAGHO_moreParams(self):
         groupObj=PairingGroup('BN254')
         params=2
         msg=[]
-        msg.append("testitest")
-        msg.append("weiblich")
+        msg.append("testmessage")
+        msg.append("female")
         el = ElGamal(params) 
         agho=AGHO(el)
         (pk_EV, sk_EV) = el.keygen()
@@ -36,12 +37,13 @@ class AGHOSignature(unittest.TestCase):
         vf=agho.verify(pk_sig, sig, pk_EV['g'],h,c)
         assert(vf)
         print("AGHO Signature Test Result with more parameters:",vf)
+
 class AGHOBlindTest(unittest.TestCase):
     def testAGHOBlind_oneParameter(self):
         groupObj=PairingGroup('BN254')
         params=1
         msg=[]
-        msg.append("testitest")
+        msg.append("testmessage")
         el = ElGamal(params) 
         agho=AGHOBlind(el)
         h=groupObj.random(G2)
@@ -54,12 +56,13 @@ class AGHOBlindTest(unittest.TestCase):
         vf=agho.verify(pk_sig, sig, pk_EV['g'], h, c)
         assert(vf)
         print("AGHOBlind Test Result with one parameter:",vf)
+    
     def testAGHOmoreComponents(self):
         groupObj=PairingGroup('BN254')
         params=2
         msg=[]
-        msg.append("testitest")
-        msg.append("weiblich")
+        msg.append("testmessage")
+        msg.append("female")
         el = ElGamal(params) 
         agho=AGHOBlind(el)
         (pk_EV, sk_EV) = el.keygen()
@@ -72,5 +75,6 @@ class AGHOBlindTest(unittest.TestCase):
         vf=agho.verify(pk_sig, sig, pk_EV['g'], h, c)
         assert(vf)
         print("AGHOBlind Test Result with more parameters:",vf)
+
 if __name__ == "__main__":
     unittest.main()

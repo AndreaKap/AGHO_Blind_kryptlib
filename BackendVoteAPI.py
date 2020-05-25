@@ -13,29 +13,30 @@ connectionW2 = create_engine('sqlite:///WVoterData.db') # Database for Userdata
 app = Flask(__name__)
 api = Api(app)
 params=2 # Voting parameters
-group=PairingGroup('BN254') # Paiiring group
-el=ElGamal(params) # el gamal instance
+group=PairingGroup('BN254') # Pairing group
+el=ElGamal(params) # ElGamal instance
 agho=AGHOBlind(el) # agho signature instance
 parser = reqparse.RequestParser() # parser for request parameters
 VoteFinished=False # stores voting status
 def deser(var):
     '''
-    deserializinig variables to get <pairing.Element> types
+    deserializing variables to get <pairing.Element> types
     '''
     return group.deserialize(var.encode('utf-8'))
 
 def ser(var):
     '''
-    serializinig variables to get base64 encoded strings
+    serializing variables to get base64 encoded strings
     '''
     return group.serialize(var).decode('utf-8')
 
 class EVPublicKey(Resource):
     '''
     class for the client to access the encryption pyblic key.
-    If a table exsts the secret key can be accessed and the public key is determined otherwise a table and a secret key is created
+    If a table exsts the secret key can be accessed and the public key is determined. Otherwise a table and a secret key is created
     the server returns vk and g to the client
     '''
+    
     def get(self): 
         initDBs()
         conn = connectionA.connect() 
@@ -55,9 +56,10 @@ class EVPublicKey(Resource):
 class SignaturePublicKey(Resource):    
     '''
     class for the client to access the verification pyblic key.
-    If a table exsts the secret key can be accessed and the public key is determined otherwise a table and a secret key is created
+    If a table exsts the secret key can be accessed and the public key is determined. Otherwise a table and a secret key is created
     the server returns (V,W,Z) and h to the client
     '''
+    
     def get(self):
         initDBs()
         conn = connectionW.connect() # connect to database  
@@ -97,10 +99,11 @@ class signVote(Resource):
     ch, ri challenge and responses for verifying the client side ZKP
     m the unencrypted public attributes
 
-    the server checks if the USer is allowed to vote and if the ZKP is valid
-    when sucessed the Server updates the voter status and signs the vote
+    the server checks if the User is allowed to vote and if the ZKP is valid
+    when successed the Server updates the voter status and signs the vote
     the server sends back the blinded signature and a challenge and a response for the server side ZKP
     '''
+    
     def post(self):
         if VoteFinished:
             return {'message': "Vote has already been finished! Please reset Vote Status for Voting!"}, 400
@@ -129,9 +132,9 @@ class signVote(Resource):
         parser.add_argument('m', type=str)
         args = parser.parse_args()
 
-        conn2=connectionW2.connect()
-        query3=conn2.execute("SELECT * FROM Voter WHERE user = '%s' AND passwd = '%s'" %(args['username'], args['password']))
-        i=query3.cursor.fetchall()
+        conn=connectionW2.connect()
+        query=conn.execute("SELECT * FROM Voter WHERE user = '%s' AND passwd = '%s'" %(args['username'], args['password']))
+        i=query.cursor.fetchall()
         if len(i)==0:
             return{'message': "Authentication failed!"}, 401 
         voterID=i[0][0]
@@ -144,13 +147,13 @@ class signVote(Resource):
         c2=[deser(args['c21']), deser(args['c22'])]
         P1=[deser(args['P11']), deser(args['P12'])]
         P2=[deser(args['P21']), deser(args['P22'])] 
-        conn = connectionW.connect()  
-        query3=conn.execute("SELECT * FROM SignKey")
+        conn2 = connectionW.connect()  
+        query2=conn2.execute("SELECT * FROM SignKey")
         w=[]
         W=[]
         G={'G1':deser(args['G1']), 'G2':deser(args['G2']), 'G3':deser(args['G3'])}
         c_bar={'c1_bar':c1, 'c2_bar': c2}
-        for i in query3.cursor.fetchall():
+        for i in query2.cursor.fetchall():
             v=deser(i[1])
             w.append(deser(i[2]))
             w.append(deser(i[3]))
@@ -177,7 +180,7 @@ class signVote(Resource):
         iscorrect=agho.ZKPU_verify(deser(args['ch']), G, r2, c_bar, P_bar, m, pk_EV, g)
         if iscorrect==False:
             return {'message': "ZKP not verified"}, 400 
-        query3=conn2.execute("UPDATE Voter SET voted=%s WHERE keyid=%s" %(True,voterID))
+        query3=conn.execute("UPDATE Voter SET voted=%s WHERE keyid=%s" %(True,voterID))
 
         (sig, z1, z2, ri)=agho.sign(g,sk,c_bar, h, G, P_bar)
         (ch,r)=agho.ZKPS(h,g,sig,pk,G,c_bar, sk, z1, z2, ri, P_bar)
@@ -186,16 +189,17 @@ class signVote(Resource):
 class submitVote(Resource):
     '''
     class for submitting a vote
-    the client submits
+    the client submits:
     the encrypted vote (c1, c2)
     the Verification key (V,W,Z)
     the signature (R,S,T)
     h the pubic parameter from G2
     the server checks the validity of the signature and stores the encryped vote in the database
     '''
+    
     def post(self):
         if VoteFinished:
-            return {'message': "Vote has already been finished1 Please reset Vote Status for Voting!"}, 400
+            return {'message': "Vote has already been finished! Please reset Vote Status for Voting!"}, 400
         initDBs()
         parser.add_argument('c11', type=str)
         parser.add_argument('c12', type=str)
@@ -227,7 +231,7 @@ class submitVote(Resource):
         isCorrect=agho.verify(pk, sig, g1, h, c)
         if isCorrect==False:
             return {'message': "Signature not correct"}, 400 
-        # ist die Signatur schon vorhanden?
+
         conn=connectionA2.connect()
         query3=conn.execute("SELECT * FROM Vote WHERE R = '%s' AND S = '%s' AND T = '%s'" %(args['R'], args['S'], args['T']))
         results=query3.cursor.fetchall()
@@ -245,6 +249,7 @@ class countVotes(Resource):
     the global varable VoteFinished is set to true, so no votes can be done anymore and the web Bulletin board can be accessed
     the votes are encrypted and counted and the number of votes for each candidate is sent back to the client
     '''
+    
     def post(self):
         parser.add_argument('cand1', type=str)
         parser.add_argument('cand2', type=str)
@@ -301,10 +306,11 @@ class countVotes(Resource):
 
 class resetVote(Resource):
     '''
-    class for resetting the voting parameters ini the database (only for testing purposes)
+    class for resetting the voting parameters in the database (only for testing purposes)
     all votes from the vote database are removed
-    all voting statuses are resetted in the voters Database
+    all voting status are resetted in the voters Database
     '''
+    
     def get(self):
         global VoteFinished
         VoteFinished=False 
@@ -320,10 +326,11 @@ class WebBulletinBoard(Resource):
     Class for gettinig parameters for the web bulletin board. User sends 
     cand1-cand3: possible candidates
     sex1-sex2: possible sexes
-    the server creates the attributevector, takes the secret key for encryption from the database and takes all votes
+    the server creates the attribute vector, takes the secret key for encryption from the database and takes all votes
     the server decrypts the votes, creates a challenge and a corresponsing response for each vote 
-    teh server returns: Encrypted Votes, Decrypted Votes, and zero knowledge components back to the user
+    the server returns: Encrypted Votes, Decrypted Votes, and zero knowledge components back to the user
     '''
+    
     def post(self):
         if VoteFinished==False:
             return{'message': "Vote has not been finished until now! Please count the votes first."}, 400
@@ -373,7 +380,6 @@ class WebBulletinBoard(Resource):
             sig.append([i[5],i[6], i[7]])
         return {'Evs':[i for i in cipherVotes] , 'Votes': [i for i in m], 'ZKP_ch': [i for i in ch], 'ZKP_r': [i for i in r], 'Sigs':[i for i in sig]}       
 
-
 def initDBs():
     '''
     Initialize the databases with the default (test)-users and creating the databases for the votes
@@ -393,14 +399,13 @@ def initDBs():
     if len(query.cursor.fetchall())==0:
         query=conn2.execute("CREATE TABLE Vote (keyid INTEGER PRIMARY KEY, c11 TEXT, c12 TEXT, c21 TEXT, c22 TEXT, R TEXT, S TEXT, T TEXT);") 
 
-api.add_resource(EVPublicKey, '/pkEV') #Route for requesting the public key for the ElGamal encrytion
-api.add_resource(SignaturePublicKey, '/pkSig') #Route for requesting the public signing key
+api.add_resource(EVPublicKey, '/pkEV') #route for requesting the public key for the ElGamal encrytion
+api.add_resource(SignaturePublicKey, '/pkSig') #route for requesting the public signing key
 api.add_resource(signVote, '/sign') #route for requesting a signature for a given EV
 api.add_resource(submitVote, '/vote') #route for submitting the vote
 api.add_resource(countVotes, '/count') # route for counting all votes
-api.add_resource(resetVote, '/reset') # route for resetiing the votiing status
+api.add_resource(resetVote, '/reset') # route for resetting the voting status
 api.add_resource(WebBulletinBoard, '/wbb') # route for requestinig data for the web bulletin board
-
 
 if __name__ == '__main__':
     app.run(port=5002)
